@@ -164,23 +164,77 @@ make site                              # snapshots pre-flight, then full provisi
 
 ## Git / Workflow
 
-- **Starting a plan:** before making changes, `git fetch origin` and
-  create a new feature branch from the tip of `origin/develop`
-  (`git checkout -b claude/<short-slug> origin/develop`). Never
-  start work directly on `develop` or `main`, and do not reuse a
-  feature branch from a previous plan.
-- Commit with clear, descriptive messages.
-- Push with `git push -u origin <feature-branch>`.
-- **Completing a plan:** when the plan's work is done, open a PR from
-  the feature branch into `develop`. Do this without waiting to be
-  asked — the PR is part of "plan complete."
-- **Branching policy:** `main` is the protected release line.
-  Feature branches MUST be cut from `develop` and PR'd back into
-  `develop`. Promotion from `develop` to `main` is a separate PR
-  cut from `develop` once a set of features has been integrated and
-  validated. Never open a PR from a feature branch directly against
-  `main`. If `develop` does not yet exist on the remote, create it
-  from `main` before opening the first feature PR.
+### Branch model
+
+- `main` is the protected release line. Every merge to `main` is a
+  release and gets tagged `v<major>.<minor>.<patch>` automatically
+  by `.github/workflows/release-tag.yml`, which reads the version
+  from `galaxy.yml`. The version field in `galaxy.yml` is the
+  source of truth — never tag manually.
+- `develop` is the integration line. Features land here continuously.
+- Feature branches are named `feature/<plan-name>` and are cut from
+  the live tip of `origin/develop`. `<plan-name>` is the plan-file
+  slug under `/home/kmechlin/.claude/plans/<slug>.md` when a plan
+  exists, otherwise a kebab-case slug derived from the task. Never
+  reuse a feature branch from a previous plan.
+
+### Starting a plan
+
+```
+git fetch origin
+git checkout -b feature/<plan-name> origin/develop
+```
+
+Never start work directly on `develop` or `main`.
+
+### Completing a plan (feature → develop)
+
+1. Commit with clear, descriptive messages.
+2. Push: `git push -u origin feature/<plan-name>`.
+3. Open a PR into `develop` with a meaningful title and a
+   Summary + Test plan body. Do this without waiting to be asked —
+   the PR is part of "plan complete."
+4. Enable auto-merge with squash:
+   `gh pr merge --auto --squash --delete-branch`.
+   This waits for the required `lint` check (yamllint +
+   ansible-lint + syntax-check) to pass green, then squash-merges
+   and deletes the remote branch. The user does **not** need to
+   review feature → develop PRs.
+5. If CI fails, fix the issue on the same branch and let auto-merge
+   retry. Do not force-merge.
+
+### Cutting a release (develop → main)
+
+Only when the user explicitly asks ("cut a release", "ship develop",
+etc.). Never proactive.
+
+1. Inspect what's landed: `git log v<last-tag>..origin/develop`
+   (or `main..develop` if no tags yet).
+2. Propose a semver bump from `galaxy.yml`'s current `version:`:
+   - **patch** — bug fixes, doc updates, internal cleanup
+   - **minor** — new roles, new playbooks, new configuration knobs
+   - **major** — breaking changes to inventory variables, role
+     interfaces, or operator-facing commands
+3. Branch `release/v<X.Y.Z>` from `origin/develop`, bump
+   `galaxy.yml`'s `version:`, PR into `develop`, and auto-merge it
+   (same as any feature). This keeps develop and main in sync on
+   versioning.
+4. Then PR `develop` → `main`. Title: `Release v<X.Y.Z>`. Body:
+   summary of changes since the last release. **Never auto-merge.**
+   The user reviews and merges.
+5. Use a *merge commit* (not squash) for develop → main so the
+   release boundary is a single visible merge on main.
+6. The `release-tag` workflow runs on the resulting push to `main`,
+   creates the `v<X.Y.Z>` tag, and publishes a GitHub Release with
+   auto-generated notes.
+
+### Hard rules
+
+- Never PR a feature branch directly into `main`.
+- Never push directly to `develop` or `main`.
+- Never auto-merge anything into `main`.
+- If `develop` does not exist on the remote, create it from `main`
+  before opening the first feature PR.
 
 ## Good next-iteration prompts
 
