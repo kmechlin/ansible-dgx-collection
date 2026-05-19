@@ -3,7 +3,7 @@
 ## Repository
 
 - **Repo:** `kmechlin/ansible-dgx-collection`
-- **Collection FQCN:** `kmechlin.dgx`
+- **Collection FQCN:** `zelos.dgx`
 - **Purpose:** Provision headless NVIDIA DGX-class workstations (Lenovo PGX,
   DGX Station, DGX Spark) running DGX OS, so the box is reachable remotely
   for (1) Sunshine/Moonlight remote desktop and (2) vLLM AI model serving.
@@ -19,7 +19,7 @@
 ```
 ansible-dgx-collection/
 ├── ansible.cfg
-├── galaxy.yml                 # namespace=kmechlin, name=dgx, version=0.1.0
+├── galaxy.yml                 # namespace=zelos, name=dgx, version=0.2.0
 ├── Makefile                   # make bootstrap / setup / site / snapshot / rollback / backup / ...
 ├── meta/runtime.yml           # requires_ansible >=2.15
 ├── requirements.yml           # community.general, ansible.posix, community.docker
