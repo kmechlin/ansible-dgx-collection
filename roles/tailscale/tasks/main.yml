@@ -1,0 +1,43 @@
+---
+- name: Add Tailscale GPG key
+  ansible.builtin.get_url:
+    url: "https://pkgs.tailscale.com/stable/ubuntu/{{ ansible_distribution_release }}.noarmor.gpg"
+    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    mode: '0644'
+
+- name: Add Tailscale apt source
+  ansible.builtin.get_url:
+    url: "https://pkgs.tailscale.com/stable/ubuntu/{{ ansible_distribution_release }}.tailscale-keyring.list"
+    dest: /etc/apt/sources.list.d/tailscale.list
+    mode: '0644'
+
+- name: Install Tailscale
+  ansible.builtin.apt:
+    name: tailscale
+    state: present
+    update_cache: true
+
+- name: Ensure tailscaled is running
+  ansible.builtin.systemd:
+    name: tailscaled
+    state: started
+    enabled: true
+
+- name: Check tailscale status
+  ansible.builtin.command: tailscale status --json
+  register: tailscale_status
+  changed_when: false
+  failed_when: false
+
+- name: Bring tailscale up (authkey + SSH)
+  ansible.builtin.command:
+    argv:
+      - tailscale
+      - up
+      - "--authkey={{ vault_tailscale_auth_key }}"
+      - "{{ '--ssh' if tailscale_ssh else '--ssh=false' }}"
+      - "{% if tailscale_advertise_routes %}--advertise-routes={{ tailscale_advertise_routes | join(',') }}{% endif %}"
+  register: tailscale_up
+  changed_when: tailscale_up.rc == 0
+  no_log: true
+  when: tailscale_status.rc != 0 or '"BackendState":"NeedsLogin"' in (tailscale_status.stdout | default(''))

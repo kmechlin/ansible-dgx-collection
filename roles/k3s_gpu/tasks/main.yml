@@ -1,0 +1,44 @@
+---
+- name: Install k3s prerequisites
+  ansible.builtin.apt:
+    name:
+      - curl
+    state: present
+
+- name: Ensure k3s config dir exists
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    mode: '0755'
+
+- name: Ensure k3s manifests dir exists
+  ansible.builtin.file:
+    path: /var/lib/rancher/k3s/server/manifests
+    state: directory
+    mode: '0755'
+
+- name: Install k3s
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl -sfL https://get.k3s.io | \
+      INSTALL_K3S_VERSION={{ k3s_version }} \
+      K3S_TOKEN={{ vault_k3s_token }} \
+      sh -
+  args:
+    executable: /bin/bash
+    creates: /usr/local/bin/k3s
+  no_log: true
+
+- name: Ensure k3s service is enabled and running
+  ansible.builtin.systemd:
+    name: k3s
+    state: started
+    enabled: true
+
+- name: Drop NVIDIA device plugin manifest (auto-applied by k3s)
+  ansible.builtin.get_url:
+    url: >-
+      https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/{{ k3s_device_plugin_version }}/deployments/static/nvidia-device-plugin.yml
+    dest: /var/lib/rancher/k3s/server/manifests/nvidia-device-plugin.yaml
+    mode: '0644'
+  when: k3s_gpu_operator_install | bool

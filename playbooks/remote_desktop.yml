@@ -1,0 +1,8 @@
+---
+- name: Remote desktop - virtual display and Sunshine
+  hosts: dgx
+  become: true
+  gather_facts: true
+  roles:
+    - role: kmechlin.dgx.virtual_display
+    - role: kmechlin.dgx.sunshine

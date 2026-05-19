@@ -1,0 +1,12 @@
+[Unit]
+Description=Sunshine self-hosted game stream host for Moonlight
+After=graphical-session.target
+Wants=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/sunshine
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

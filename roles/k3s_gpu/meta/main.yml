@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: kmechlin
+  description: Single-node k3s with NVIDIA runtime auto-detected by containerd
+  license: Apache-2.0
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - k3s
+    - kubernetes
+    - nvidia
+    - gpu
+dependencies: []

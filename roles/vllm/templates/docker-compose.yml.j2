@@ -1,0 +1,20 @@
+---
+services:
+  vllm:
+    image: {{ vllm_image }}
+    container_name: vllm
+    restart: unless-stopped
+    runtime: nvidia
+    ipc: host
+    ports:
+      - "{{ vllm_port }}:8000"
+    env_file: .env
+    volumes:
+      - {{ vllm_hf_cache }}:/root/.cache/huggingface
+    command: >-
+      --model {{ vllm_model }}
+      --served-model-name {{ vllm_served_model_name }}
+      --tensor-parallel-size {{ vllm_tensor_parallel_size }}
+      --max-model-len {{ vllm_max_model_len }}
+      --gpu-memory-utilization {{ vllm_gpu_memory_utilization }}
+      --api-key ${VLLM_API_KEY}

@@ -1,0 +1,6 @@
+---
+sunshine_user: ubuntu
+sunshine_version: "0.23.1"
+sunshine_deb_release: "{{ '24.04' if ansible_distribution_release == 'noble' else '22.04' }}"
+sunshine_deb_url: >-
+  https://github.com/LizardByte/Sunshine/releases/download/v{{ sunshine_version }}/sunshine-ubuntu-{{ sunshine_deb_release }}-amd64.deb

@@ -1,0 +1,47 @@
+---
+- name: Create vLLM project directory
+  ansible.builtin.file:
+    path: "{{ vllm_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Create HF cache directory
+  ansible.builtin.file:
+    path: "{{ vllm_hf_cache }}"
+    state: directory
+    mode: '0755'
+
+- name: Render docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ vllm_dir }}/docker-compose.yml"
+    mode: '0644'
+  notify: Restart vllm
+
+- name: Render .env (vault'd)
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ vllm_dir }}/.env"
+    mode: '0600'
+  no_log: true
+  notify: Restart vllm
+
+- name: Bring up vLLM
+  community.docker.docker_compose_v2:
+    project_src: "{{ vllm_dir }}"
+    state: present
+    pull: missing
+
+- name: Flush handlers (restart on config change before health check)
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for vLLM /v1/models to respond
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ vllm_port }}/v1/models"
+    headers:
+      Authorization: "Bearer {{ vault_vllm_api_key }}"
+    status_code: 200
+  register: vllm_health
+  retries: "{{ vllm_health_retries }}"
+  delay: "{{ vllm_health_delay }}"
+  until: vllm_health.status == 200

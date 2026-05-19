@@ -1,0 +1,7 @@
+---
+- import_playbook: nvidia_verify.yml
+- import_playbook: base.yml
+- import_playbook: remote_desktop.yml
+- import_playbook: ai_serving.yml
+- import_playbook: monitoring.yml
+- import_playbook: k3s.yml

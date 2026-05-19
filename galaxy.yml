@@ -1,0 +1,35 @@
+---
+namespace: kmechlin
+name: dgx
+version: 0.1.0
+readme: README.md
+authors:
+  - kmechlin
+description: >
+  Provision headless NVIDIA DGX-class workstations (Lenovo PGX, DGX Station,
+  DGX Spark) running DGX OS for remote desktop (Sunshine/Moonlight) and
+  OpenAI-compatible AI model serving (vLLM) over Tailscale.
+license:
+  - Apache-2.0
+tags:
+  - nvidia
+  - dgx
+  - gpu
+  - ai
+  - vllm
+  - sunshine
+  - tailscale
+  - k3s
+dependencies:
+  community.general: ">=8.0.0"
+  ansible.posix: ">=1.5.0"
+  community.docker: ">=3.10.0"
+repository: https://github.com/kmechlin/ansible-dgx-collection
+issues: https://github.com/kmechlin/ansible-dgx-collection/issues
+build_ignore:
+  - .github
+  - .yamllint.yml
+  - .gitignore
+  - venv
+  - .venv
+  - inventory

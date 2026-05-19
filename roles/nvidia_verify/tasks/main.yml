@@ -1,0 +1,17 @@
+---
+- name: Run nvidia-smi
+  ansible.builtin.command: nvidia-smi --query-gpu=name,driver_version --format=csv,noheader
+  register: nvidia_smi
+  changed_when: false
+  failed_when: nvidia_smi.rc != 0
+
+- name: Show detected GPUs and driver
+  ansible.builtin.debug:
+    msg: "{{ nvidia_smi.stdout_lines }}"
+
+- name: Assert driver meets minimum version
+  ansible.builtin.assert:
+    that:
+      - (nvidia_smi.stdout_lines | first | regex_replace('^.*,\\s*([0-9]+)\\..*$', '\\1') | int) >= (nvidia_verify_min_driver | int)
+    fail_msg: "NVIDIA driver too old (need >= {{ nvidia_verify_min_driver }})"
+    success_msg: "NVIDIA driver meets minimum {{ nvidia_verify_min_driver }}"

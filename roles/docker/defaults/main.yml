@@ -1,0 +1,5 @@
+---
+docker_users: []
+docker_default_runtime: nvidia
+docker_smoke_image: nvidia/cuda:12.4.1-base-ubuntu22.04
+docker_install_smoke_test: true

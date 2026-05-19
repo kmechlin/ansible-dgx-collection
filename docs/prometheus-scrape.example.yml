@@ -1,0 +1,14 @@
+---
+# Drop into your prometheus.yml under scrape_configs:
+scrape_configs:
+  - job_name: dgx-node
+    static_configs:
+      - targets:
+          - 'dgx01:9100'   # node_exporter
+  - job_name: dgx-gpu
+    static_configs:
+      - targets:
+          - 'dgx01:9400'   # dcgm-exporter
+
+# Recommended Grafana dashboard for DCGM:
+#   https://grafana.com/grafana/dashboards/12239

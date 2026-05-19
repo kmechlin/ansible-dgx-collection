@@ -1,0 +1,59 @@
+---
+- name: Install Xorg + lightdm
+  ansible.builtin.apt:
+    name:
+      - xserver-xorg
+      - xserver-xorg-video-nvidia
+      - lightdm
+      - xterm
+      - x11-xserver-utils
+    state: present
+    update_cache: true
+
+- name: Install EDID generator
+  ansible.builtin.copy:
+    src: gen_edid.py
+    dest: /usr/local/bin/dgx-gen-edid
+    mode: '0755'
+
+- name: Ensure /etc/X11 exists
+  ansible.builtin.file:
+    path: /etc/X11
+    state: directory
+    mode: '0755'
+
+- name: Generate EDID binary
+  ansible.builtin.command:
+    cmd: >-
+      /usr/local/bin/dgx-gen-edid
+      --width {{ virtual_display_width }}
+      --height {{ virtual_display_height }}
+      --refresh {{ virtual_display_refresh }}
+      --out /etc/X11/edid.bin
+    creates: /etc/X11/edid.bin
+  notify: Restart display manager
+
+- name: Ensure xorg.conf.d exists
+  ansible.builtin.file:
+    path: /etc/X11/xorg.conf.d
+    state: directory
+    mode: '0755'
+
+- name: Render NVIDIA headless xorg snippet
+  ansible.builtin.template:
+    src: 10-nvidia-headless.conf.j2
+    dest: /etc/X11/xorg.conf.d/10-nvidia-headless.conf
+    mode: '0644'
+  notify: Restart display manager
+
+- name: Set lightdm as default display manager
+  ansible.builtin.copy:
+    dest: /etc/X11/default-display-manager
+    content: "/usr/sbin/lightdm\n"
+    mode: '0644'
+
+- name: Enable lightdm so X starts at boot
+  ansible.builtin.systemd:
+    name: lightdm
+    enabled: true
+    state: started

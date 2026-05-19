@@ -1,0 +1,17 @@
+---
+# Copy to inventory/group_vars/all/vault.yml, then:
+#   ansible-vault encrypt inventory/group_vars/all/vault.yml
+# Edit with:
+#   ansible-vault edit inventory/group_vars/all/vault.yml
+
+# Tailscale auth key: https://login.tailscale.com/admin/settings/keys
+vault_tailscale_auth_key: "tskey-auth-XXXXXXXXXXXXXXXX"
+
+# Hugging Face token (required for gated models like Llama).
+vault_hf_token: "hf_XXXXXXXXXXXXXXXX"
+
+# Long random string the vLLM container will require in `Authorization: Bearer ...`.
+vault_vllm_api_key: "sk-replace-with-a-long-random-string"
+
+# Cluster token for k3s (only used if k3s_install: true).
+vault_k3s_token: "replace-with-random-string"

@@ -1,0 +1,5 @@
+---
+- name: Restart vllm
+  community.docker.docker_compose_v2:
+    project_src: "{{ vllm_dir }}"
+    state: restarted

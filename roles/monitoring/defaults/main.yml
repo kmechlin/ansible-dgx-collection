@@ -1,0 +1,6 @@
+---
+monitoring_bind: 127.0.0.1
+node_exporter_version: "1.8.1"
+node_exporter_port: 9100
+dcgm_exporter_image: nvcr.io/nvidia/k8s/dcgm-exporter:3.3.7-3.5.0-ubuntu22.04
+dcgm_exporter_port: 9400

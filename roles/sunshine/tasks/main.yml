@@ -1,0 +1,58 @@
+---
+- name: Download Sunshine .deb
+  ansible.builtin.get_url:
+    url: "{{ sunshine_deb_url }}"
+    dest: "/tmp/sunshine-{{ sunshine_version }}.deb"
+    mode: '0644'
+
+- name: Install Sunshine .deb (pulls runtime deps)
+  ansible.builtin.apt:
+    deb: "/tmp/sunshine-{{ sunshine_version }}.deb"
+    state: present
+
+- name: Look up sunshine_user uid
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ sunshine_user }}"
+
+- name: Enable lingering so user services start at boot
+  ansible.builtin.command: "loginctl enable-linger {{ sunshine_user }}"
+  args:
+    creates: "/var/lib/systemd/linger/{{ sunshine_user }}"
+
+- name: Ensure user systemd dir exists
+  ansible.builtin.file:
+    path: "/home/{{ sunshine_user }}/.config/systemd/user"
+    state: directory
+    owner: "{{ sunshine_user }}"
+    group: "{{ sunshine_user }}"
+    mode: '0755'
+
+- name: Install sunshine user service unit
+  ansible.builtin.template:
+    src: sunshine.service.j2
+    dest: "/home/{{ sunshine_user }}/.config/systemd/user/sunshine.service"
+    owner: "{{ sunshine_user }}"
+    group: "{{ sunshine_user }}"
+    mode: '0644'
+
+- name: Enable sunshine user service
+  ansible.builtin.systemd:
+    name: sunshine.service
+    enabled: true
+    scope: user
+  become: true
+  become_user: "{{ sunshine_user }}"
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ getent_passwd[sunshine_user][1] }}"
+  register: sunshine_enable
+  failed_when: false
+
+- name: First-boot note
+  ansible.builtin.debug:
+    msg: >-
+      If `systemctl --user enable sunshine` did not start cleanly, log in
+      interactively as {{ sunshine_user }} once (so XDG_RUNTIME_DIR is
+      created), then re-run this play. Sunshine web UI:
+      https://<tailscale-name>:47990
+  when: sunshine_enable.failed | default(false)

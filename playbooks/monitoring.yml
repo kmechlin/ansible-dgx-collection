@@ -1,0 +1,7 @@
+---
+- name: Monitoring - node_exporter and DCGM exporter
+  hosts: dgx
+  become: true
+  gather_facts: true
+  roles:
+    - role: kmechlin.dgx.monitoring

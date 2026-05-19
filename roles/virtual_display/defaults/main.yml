@@ -1,0 +1,8 @@
+---
+virtual_display_width: 3840
+virtual_display_height: 2160
+virtual_display_refresh: 60
+# Leave empty to let the NVIDIA driver autodetect the BusID;
+# fill with e.g. "PCI:1:0:0" if you need to pin a specific GPU.
+virtual_display_busid: ""
+virtual_display_connector: "DFP-0"

@@ -1,0 +1,52 @@
+---
+# Core tuning knobs for the kmechlin.dgx collection.
+# Vault secrets live alongside this file in vault.yml (gitignored).
+
+# --- NVIDIA / driver ---
+nvidia_verify_min_driver: "550"
+
+# --- Docker / NVIDIA container toolkit ---
+docker_users:
+  - ubuntu
+docker_default_runtime: nvidia
+docker_smoke_image: nvidia/cuda:12.4.1-base-ubuntu22.04
+
+# --- Tailscale ---
+tailscale_ssh: true
+tailscale_advertise_routes: []
+tailscale_extra_args: []
+
+# --- Virtual display ---
+virtual_display_width: 3840
+virtual_display_height: 2160
+virtual_display_refresh: 60
+virtual_display_busid: ""   # autodetect if empty; e.g. "PCI:1:0:0"
+
+# --- Sunshine ---
+sunshine_user: ubuntu
+sunshine_version: "0.23.1"
+
+# --- vLLM ---
+vllm_dir: /opt/vllm
+vllm_image: vllm/vllm-openai:latest
+vllm_model: meta-llama/Meta-Llama-3.1-8B-Instruct
+vllm_served_model_name: llama-3.1-8b
+vllm_port: 8000
+vllm_tensor_parallel_size: 1
+vllm_max_model_len: 8192
+vllm_gpu_memory_utilization: 0.90
+vllm_hf_cache: /opt/vllm/hf-cache
+vllm_health_retries: 60
+vllm_health_delay: 10
+
+# --- k3s (opt-in) ---
+k3s_install: false
+k3s_gpu_operator_install: false
+k3s_version: v1.30.2+k3s1
+
+# --- Monitoring ---
+monitoring_bind: 127.0.0.1
+node_exporter_version: "1.8.1"
+node_exporter_port: 9100
+dcgm_exporter_image: nvcr.io/nvidia/k8s/dcgm-exporter:3.3.7-3.5.0-ubuntu22.04
+dcgm_exporter_port: 9400

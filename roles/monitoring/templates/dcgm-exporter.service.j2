@@ -1,0 +1,18 @@
+[Unit]
+Description=NVIDIA DCGM Exporter (container)
+After=docker.service
+Requires=docker.service
+
+[Service]
+ExecStartPre=-/usr/bin/docker stop dcgm-exporter
+ExecStartPre=-/usr/bin/docker rm dcgm-exporter
+ExecStart=/usr/bin/docker run --name dcgm-exporter \
+    --gpus all --cap-add SYS_ADMIN --rm \
+    -p {{ monitoring_bind }}:{{ dcgm_exporter_port }}:9400 \
+    {{ dcgm_exporter_image }}
+ExecStop=/usr/bin/docker stop dcgm-exporter
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

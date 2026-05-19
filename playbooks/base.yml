@@ -1,0 +1,8 @@
+---
+- name: Base setup - Docker and Tailscale
+  hosts: dgx
+  become: true
+  gather_facts: true
+  roles:
+    - role: kmechlin.dgx.docker
+    - role: kmechlin.dgx.tailscale
