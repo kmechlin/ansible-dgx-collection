@@ -173,6 +173,14 @@ make site                              # snapshots pre-flight, then full provisi
 - Commit with clear, descriptive messages.
 - Push with `git push -u origin <session-branch>`.
 - Do **not** create a PR unless explicitly asked.
+- **Branching policy:** `main` is the protected release line. Feature
+  branches (the `claude/*` session branches and any other topic
+  branches) MUST be PR'd into `develop` first. Promotion from
+  `develop` to `main` is a separate PR cut from `develop` once a
+  set of features has been integrated and validated. Never open a
+  PR from a feature branch directly against `main`. If `develop`
+  does not yet exist on the remote, create it from `main` before
+  opening the first feature PR.
 
 ## Good next-iteration prompts
 
