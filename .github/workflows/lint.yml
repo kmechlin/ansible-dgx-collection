@@ -33,6 +33,8 @@ jobs:
 
       - name: syntax-check
         working-directory: ansible_collections/zelos/dgx
+        env:
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}
         run: |
           for pb in playbooks/*.yml; do
             ansible-playbook -i inventory/hosts.yml "$pb" --syntax-check
