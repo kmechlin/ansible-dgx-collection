@@ -2,7 +2,7 @@
 
 ## Repository
 
-- **Repo:** `kmechlin/ansible-dgx-collection`
+- **Repo:** `kmechlin/zelos.dgx`
 - **Collection FQCN:** `zelos.dgx`
 - **Purpose:** Provision headless NVIDIA DGX-class workstations (Lenovo PGX,
   DGX Station, DGX Spark) running DGX OS, so the box is reachable remotely
@@ -17,7 +17,7 @@
 ## Layout
 
 ```
-ansible-dgx-collection/
+zelos.dgx/
 ├── ansible.cfg
 ├── galaxy.yml                 # namespace=zelos, name=dgx, version=0.2.0
 ├── Makefile                   # make bootstrap / setup / site / snapshot / rollback / backup / ...
@@ -144,8 +144,8 @@ with `ansible-vault`):
 ## How to run it
 
 ```bash
-git clone https://github.com/kmechlin/ansible-dgx-collection.git
-cd ansible-dgx-collection
+git clone https://github.com/kmechlin/zelos.dgx.git
+cd zelos.dgx
 python3 -m venv venv && source venv/bin/activate
 pip install ansible ansible-lint yamllint
 make deps                              # installs community.general/posix/docker
@@ -200,6 +200,6 @@ make site                              # snapshots pre-flight, then full provisi
 
 - `claude.ai/code/session_…` URLs are NOT fetchable from this environment.
   Paste task specs as text.
-- Repo MCP scope is restricted to `kmechlin/ansible-dgx-collection`.
+- Repo MCP scope is restricted to `kmechlin/zelos.dgx`.
 - This collection is at `0.1.0`. Bump in `galaxy.yml` on each material
   change; tag releases as `v0.1.0`, `v0.2.0`, etc.
