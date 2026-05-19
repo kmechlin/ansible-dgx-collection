@@ -16,11 +16,14 @@
 zelos.dgx/
 ├── ansible.cfg
 ├── galaxy.yml                 # namespace=zelos, name=dgx, version=0.2.0
-├── Makefile                   # make bootstrap / setup / site / snapshot / rollback / backup / ...
+├── pyproject.toml             # zdgx CLI package (host-installable + container ENTRYPOINT)
+├── Dockerfile                 # python:3.12-slim + ansible + the zdgx CLI baked in
+├── Makefile                   # make build / run-shell / dev-shell (container only)
+├── cli/zdgx/                  # Typer CLI source (app.py, runner.py)
 ├── meta/runtime.yml           # requires_ansible >=2.15
 ├── requirements.yml           # community.general, ansible.posix, community.docker
 ├── .yamllint.yml
-├── .github/workflows/lint.yml # yamllint + ansible-lint + syntax-check
+├── .github/workflows/         # lint.yml + release-tag.yml
 ├── playbooks/
 │   ├── site.yml               # imports snapshot.yml + the rest
 │   ├── bootstrap.yml          # create the `ansible` user (run once, --ask-pass)
@@ -71,17 +74,26 @@ zelos.dgx/
 
 ## Operator flow
 
+All operator actions go through the `zdgx` CLI (a Typer app installed
+into the container as ENTRYPOINT, also installable on the host via
+`pip install -e .`). The Makefile is now just for the container image:
+`make build`, `make run-shell`, `make dev-shell`.
+
 ```
-make bootstrap   # one-time, interactive (admin user + password)
-make setup       # one-time: full borg backup + clean-baseline snapshot
-make site        # repeatable; pre-flight snapshot taken each run
+zdgx bootstrap   # one-time, interactive (admin user + password)
+zdgx setup       # one-time: full borg backup + clean-baseline snapshot
+zdgx site        # repeatable; pre-flight snapshot taken each run
 ```
+
+`zdgx --help` lists every subcommand. Common global options:
+`-i/--inventory`, `--vault-password-file`, `--limit`, `--check`, `-v`,
+`-e/--extra-vars`.
 
 Recovery hierarchy:
 
-- bad `make site` run → `make rollback` (latest pre-flight snapshot)
-- cumulative drift → `make rollback ASK='-e snapshot_target=clean-baseline'`
-- disk loss → reinstall OS, `make bootstrap`, restore from borg
+- bad `zdgx site` run → `zdgx rollback` (latest pre-flight snapshot)
+- cumulative drift → `zdgx rollback --target clean-baseline`
+- disk loss → reinstall OS, `zdgx bootstrap`, restore with `zdgx backup-restore --archive <name>`
 
 The two safety nets are deliberately separate. **timeshift** is local
 snapshot for in-place rollback; **borg** is off-host
@@ -139,27 +151,77 @@ with `ansible-vault`):
 
 ## How to run it
 
+There are three equivalent workflows: host-installed CLI, prod-like
+container shell (`run-shell`), and live-edit container shell
+(`dev-shell`). The container is the recommended path because it pins
+Ansible + dependencies; the host install is convenient for ad-hoc work.
+
+### Setup (one-time)
+
 ```bash
 git clone https://github.com/kmechlin/zelos.dgx.git
 cd zelos.dgx
-python3 -m venv venv && source venv/bin/activate
-pip install ansible ansible-lint yamllint
-make deps                              # installs community.general/posix/docker
 
-# --- One-time bootstrap (interactive) ---
+# Inventory + vault (always required, however you run zdgx)
 cp inventory/bootstrap.example.yml inventory/bootstrap.yml
 vim inventory/bootstrap.yml            # admin user, host, key path
-make bootstrap                         # prompts for admin SSH + sudo password
-
-# --- Vault + baseline (one-time) ---
 vim inventory/hosts.yml                # confirm ansible_host
 cp inventory/vault.example.yml inventory/group_vars/all/vault.yml
 ansible-vault encrypt inventory/group_vars/all/vault.yml
-make ping                              # SSH + become smoke test as `ansible`
-make setup                             # baseline snapshot + first full borg backup
+```
 
-# --- Provision (repeatable) ---
-make site                              # snapshots pre-flight, then full provision
+### Workflow A: host-installed CLI
+
+```bash
+python3 -m venv venv && source venv/bin/activate
+pip install -e .                       # installs the zdgx CLI
+pip install ansible ansible-lint yamllint
+zdgx deps                              # community.general / posix / docker
+
+zdgx bootstrap                         # prompts for admin SSH + sudo password
+zdgx ping                              # smoke test as `ansible`
+zdgx setup                             # baseline snapshot + first full borg backup
+zdgx site                              # repeatable full provision
+```
+
+### Workflow B: container, prod-like (`make run-shell`)
+
+```bash
+make build
+make run-shell                         # bash inside the container, RO inventory + vault
+# inside the container:
+zdgx site
+```
+
+`make run-shell` mounts your inventory + vault read-only at the
+container paths Ansible expects. Override `INVENTORY_FILE` /
+`SECRETS_FILE` / `SSH_DIR` on the make line to point elsewhere.
+
+### Workflow C: container, live edits (`make dev-shell`)
+
+```bash
+make build                             # only when image deps change
+make dev-shell
+# inside the container:
+zdgx --help                            # reflects any change you make on the host
+zdgx setup --check                     # dry run
+```
+
+`dev-shell` bind-mounts the current repo over `/workspace` *and* over
+the collection install path (`/usr/share/ansible/collections/...`), so
+role/playbook/CLI edits on the host take effect immediately without a
+rebuild.
+
+### One-shot (no shell)
+
+The container's ENTRYPOINT is `zdgx`:
+
+```bash
+docker run --rm \
+  -v $PWD/inventory/hosts.yml:/workspace/inventory/hosts.yml:ro \
+  -v $PWD/inventory/group_vars/all/vault.yml:/workspace/inventory/group_vars/all/vault.yml:ro \
+  -v $HOME/.ssh:/home/ansible/.ssh:ro \
+  zelos-dgx-ansible:latest setup --check
 ```
 
 ## Git / Workflow

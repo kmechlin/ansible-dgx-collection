@@ -35,3 +35,9 @@ build_ignore:
   - venv
   - .venv
   - inventory
+  - cli
+  - pyproject.toml
+  - scripts
+  - "*.egg-info"
+  - Dockerfile
+  - Makefile
