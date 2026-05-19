@@ -1,5 +1,5 @@
 ---
-# Core tuning knobs for the kmechlin.dgx collection.
+# Core tuning knobs for the zelos.dgx collection.
 # Vault secrets live alongside this file in vault.yml (gitignored).
 
 # --- Bootstrap (one-time, before this file is even relevant) ---

@@ -6,5 +6,5 @@
   tasks:
     - name: Include restore tasks
       ansible.builtin.include_role:
-        name: kmechlin.dgx.backup
+        name: zelos.dgx.backup
         tasks_from: restore.yml

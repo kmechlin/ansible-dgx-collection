@@ -4,5 +4,5 @@
   become: true
   gather_facts: true
   roles:
-    - role: kmechlin.dgx.k3s_gpu
+    - role: zelos.dgx.k3s_gpu
       when: k3s_install | default(false) | bool

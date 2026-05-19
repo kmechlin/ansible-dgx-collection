@@ -4,4 +4,4 @@
   become: true
   gather_facts: true
   roles:
-    - role: kmechlin.dgx.nvidia_verify
+    - role: zelos.dgx.nvidia_verify

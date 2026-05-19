@@ -6,5 +6,5 @@
   tasks:
     - name: Include rollback tasks
       ansible.builtin.include_role:
-        name: kmechlin.dgx.snapshot
+        name: zelos.dgx.snapshot
         tasks_from: rollback.yml

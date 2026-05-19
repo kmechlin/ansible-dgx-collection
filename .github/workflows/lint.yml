@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: ansible_collections/kmechlin/dgx
+          path: ansible_collections/zelos/dgx
 
       - uses: actions/setup-python@v5
         with:
@@ -21,18 +21,18 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install ansible ansible-lint yamllint
-          ansible-galaxy collection install -r ansible_collections/kmechlin/dgx/requirements.yml
+          ansible-galaxy collection install -r ansible_collections/zelos/dgx/requirements.yml
 
       - name: yamllint
-        working-directory: ansible_collections/kmechlin/dgx
+        working-directory: ansible_collections/zelos/dgx
         run: yamllint .
 
       - name: ansible-lint
-        working-directory: ansible_collections/kmechlin/dgx
+        working-directory: ansible_collections/zelos/dgx
         run: ansible-lint
 
       - name: syntax-check
-        working-directory: ansible_collections/kmechlin/dgx
+        working-directory: ansible_collections/zelos/dgx
         run: |
           for pb in playbooks/*.yml; do
             ansible-playbook -i inventory/hosts.yml "$pb" --syntax-check
