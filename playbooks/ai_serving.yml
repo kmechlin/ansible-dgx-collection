@@ -4,5 +4,5 @@
   become: true
   gather_facts: true
   roles:
-    - role: kmechlin.dgx.docker
-    - role: kmechlin.dgx.vllm
+    - role: zelos.dgx.docker
+    - role: zelos.dgx.vllm

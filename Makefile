@@ -3,10 +3,21 @@ INV       = inventory/hosts.yml
 BOOT_INV  = inventory/bootstrap.yml
 ASK       = --ask-vault-pass
 
+# --- Container ---------------------------------------------------------
+# Override on the command line, e.g.
+#   make docker-shell INVENTORY_FILE=/path/to/hosts.yml SECRETS_FILE=...
+DOCKER         ?= docker
+DOCKER_IMAGE   ?= zelos-dgx-ansible
+DOCKER_TAG     ?= latest
+SSH_DIR        ?= $(HOME)/.ssh
+INVENTORY_FILE ?= $(CURDIR)/inventory/hosts.yml
+SECRETS_FILE   ?= $(CURDIR)/inventory/group_vars/all/vault.yml
+
 .PHONY: help deps lint syntax ping \
         bootstrap setup site \
         snapshot rollback backup backup-now backup-restore \
-        nvidia base remote-desktop ai k3s monitoring tailscale
+        nvidia base remote-desktop ai k3s monitoring tailscale \
+        docker-build docker-shell
 
 help:
 	@echo "Operator flow on a fresh DGX:"
@@ -35,6 +46,12 @@ help:
 	@echo "  lint                  yamllint + ansible-lint"
 	@echo "  syntax                ansible-playbook --syntax-check on every playbook"
 	@echo "  ping                  ansible -m ping all hosts"
+	@echo ""
+	@echo "Container (local dev mirrors the eventual K8s topology):"
+	@echo "  docker-build          build $(DOCKER_IMAGE):$(DOCKER_TAG)"
+	@echo "  docker-shell          bash in the container with inventory + secrets mounted"
+	@echo "                        Overrides: DOCKER_IMAGE, DOCKER_TAG,"
+	@echo "                                   INVENTORY_FILE, SECRETS_FILE, SSH_DIR"
 
 deps:
 	ansible-galaxy collection install -r requirements.yml
@@ -96,3 +113,28 @@ monitoring:
 
 tailscale:
 	$(ANSIBLE) -i $(INV) playbooks/tailscale.yml $(ASK)
+
+# --- Container ---------------------------------------------------------
+
+docker-build:
+	$(DOCKER) build \
+		--build-arg USER_UID=$$(id -u) \
+		--build-arg USER_GID=$$(id -g) \
+		-t $(DOCKER_IMAGE):$(DOCKER_TAG) .
+
+docker-shell:
+	@test -f "$(INVENTORY_FILE)" || { \
+		echo "missing inventory: $(INVENTORY_FILE)"; \
+		echo "  copy inventory/hosts.yml and edit, or pass INVENTORY_FILE=..."; \
+		exit 1; }
+	@test -f "$(SECRETS_FILE)" || { \
+		echo "missing secrets file: $(SECRETS_FILE)"; \
+		echo "  copy inventory/vault.example.yml to $(SECRETS_FILE),"; \
+		echo "  encrypt it with ansible-vault, or pass SECRETS_FILE=..."; \
+		exit 1; }
+	$(DOCKER) run --rm -it \
+		-v $(INVENTORY_FILE):/workspace/inventory/hosts.yml:ro \
+		-v $(SECRETS_FILE):/workspace/inventory/group_vars/all/vault.yml:ro \
+		-v $(SSH_DIR):/home/ansible/.ssh:ro \
+		-w /workspace \
+		$(DOCKER_IMAGE):$(DOCKER_TAG) /bin/bash

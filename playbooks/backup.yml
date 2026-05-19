@@ -4,4 +4,4 @@
   become: true
   gather_facts: true
   roles:
-    - role: kmechlin.dgx.backup
+    - role: zelos.dgx.backup

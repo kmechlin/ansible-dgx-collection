@@ -3,7 +3,7 @@
 ## Repository
 
 - **Repo:** `kmechlin/ansible-dgx-collection`
-- **Collection FQCN:** `kmechlin.dgx`
+- **Collection FQCN:** `zelos.dgx`
 - **Purpose:** Provision headless NVIDIA DGX-class workstations (Lenovo PGX,
   DGX Station, DGX Spark) running DGX OS, so the box is reachable remotely
   for (1) Sunshine/Moonlight remote desktop and (2) vLLM AI model serving.
@@ -19,7 +19,7 @@
 ```
 ansible-dgx-collection/
 ├── ansible.cfg
-├── galaxy.yml                 # namespace=kmechlin, name=dgx, version=0.1.0
+├── galaxy.yml                 # namespace=zelos, name=dgx, version=0.2.0
 ├── Makefile                   # make bootstrap / setup / site / snapshot / rollback / backup / ...
 ├── meta/runtime.yml           # requires_ansible >=2.15
 ├── requirements.yml           # community.general, ansible.posix, community.docker
@@ -173,6 +173,14 @@ make site                              # snapshots pre-flight, then full provisi
 - Commit with clear, descriptive messages.
 - Push with `git push -u origin <session-branch>`.
 - Do **not** create a PR unless explicitly asked.
+- **Branching policy:** `main` is the protected release line. Feature
+  branches (the `claude/*` session branches and any other topic
+  branches) MUST be PR'd into `develop` first. Promotion from
+  `develop` to `main` is a separate PR cut from `develop` once a
+  set of features has been integrated and validated. Never open a
+  PR from a feature branch directly against `main`. If `develop`
+  does not yet exist on the remote, create it from `main` before
+  opening the first feature PR.
 
 ## Good next-iteration prompts
 

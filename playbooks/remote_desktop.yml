@@ -4,5 +4,5 @@
   become: true
   gather_facts: true
   roles:
-    - role: kmechlin.dgx.virtual_display
-    - role: kmechlin.dgx.sunshine
+    - role: zelos.dgx.virtual_display
+    - role: zelos.dgx.sunshine

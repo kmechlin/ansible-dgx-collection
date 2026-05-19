@@ -1,4 +1,4 @@
-# kmechlin.dgx
+# zelos.dgx
 
 Ansible collection for provisioning headless NVIDIA DGX-class workstations
 (Lenovo PGX, DGX Station, DGX Spark) running DGX OS, so the box is reachable
