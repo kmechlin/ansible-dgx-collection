@@ -10,10 +10,6 @@
   All access is over Tailscale.
 - **State:** v0.1.0 scaffold. **Not yet validated against real hardware.**
 
-## Active Branch
-
-- Work on: `claude/ansible-remote-ai-setup-aLg4U`
-
 ## Layout
 
 ```
@@ -168,19 +164,23 @@ make site                              # snapshots pre-flight, then full provisi
 
 ## Git / Workflow
 
-- Develop on the session branch printed in the harness system prompt
-  (the one starting with `claude/ansible-remote-ai-setup-`).
+- **Starting a plan:** before making changes, `git fetch origin` and
+  create a new feature branch from the tip of `origin/develop`
+  (`git checkout -b claude/<short-slug> origin/develop`). Never
+  start work directly on `develop` or `main`, and do not reuse a
+  feature branch from a previous plan.
 - Commit with clear, descriptive messages.
-- Push with `git push -u origin <session-branch>`.
-- Do **not** create a PR unless explicitly asked.
-- **Branching policy:** `main` is the protected release line. Feature
-  branches (the `claude/*` session branches and any other topic
-  branches) MUST be PR'd into `develop` first. Promotion from
-  `develop` to `main` is a separate PR cut from `develop` once a
-  set of features has been integrated and validated. Never open a
-  PR from a feature branch directly against `main`. If `develop`
-  does not yet exist on the remote, create it from `main` before
-  opening the first feature PR.
+- Push with `git push -u origin <feature-branch>`.
+- **Completing a plan:** when the plan's work is done, open a PR from
+  the feature branch into `develop`. Do this without waiting to be
+  asked — the PR is part of "plan complete."
+- **Branching policy:** `main` is the protected release line.
+  Feature branches MUST be cut from `develop` and PR'd back into
+  `develop`. Promotion from `develop` to `main` is a separate PR
+  cut from `develop` once a set of features has been integrated and
+  validated. Never open a PR from a feature branch directly against
+  `main`. If `develop` does not yet exist on the remote, create it
+  from `main` before opening the first feature PR.
 
 ## Good next-iteration prompts
 
