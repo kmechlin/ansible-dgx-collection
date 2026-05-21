@@ -14,6 +14,36 @@ sets up Docker + nvidia-container-toolkit, optional single-node k3s with the
 NVIDIA runtime + device plugin, and Prometheus monitoring (node_exporter +
 DCGM exporter).
 
+## What gets installed
+
+```mermaid
+flowchart TB
+  subgraph collection["zelos.dgx (Ansible collection)"]
+    direction TB
+    bs["bootstrap role<br/><i>ansible user + sudo</i>"]
+    docker["docker role<br/><i>+ nvidia-container-toolkit<br/>(NVIDIA = default runtime)</i>"]
+    ts["tailscale role<br/><i>tailnet join (no port-forward)</i>"]
+    vllm["vllm role<br/><i>compose + :8000 OpenAI API</i>"]
+    k3s["k3s_gpu role <i>(opt-in)</i><br/><i>+ NVIDIA device plugin</i>"]
+    mon["monitoring role<br/><i>node_exporter + DCGM</i>"]
+    sun["sunshine role<br/><i>headless remote desktop<br/>(virtual X display)</i>"]
+    snap["snapshot + backup roles<br/><i>Timeshift (local) + borg (off-host)</i>"]
+  end
+
+  ops["operator"] -- "make bootstrap → setup → site" --> collection
+  collection --> host["<b>provisioned DGX host</b><br/>ready to serve LLM traffic"]
+  host -. "(future / extended)" .-> client["zelosclient<br/><i>container delivery</i>"]
+  client -. "subscribes" .-> bp[["zelosbackplane"]]
+```
+
+The collection's role in the broader [Zelos suite](https://github.com/ZelosAI/zelosai)
+is to take a freshly-OS'd host all the way to "ready to participate" — both
+provisioning the host *and* delivering a
+[`zelosclient`](https://github.com/ZelosAI/zelosclient) container that wires the
+host into the suite's [zelosbackplane](https://github.com/ZelosAI/zelosbackplane).
+See [zelosai/docs/architecture/03-provisioning.md](https://github.com/ZelosAI/zelosai/blob/main/docs/architecture/03-provisioning.md)
+for the full story.
+
 ## Requirements
 
 - Target: DGX OS (Ubuntu 22.04 jammy or 24.04 noble base), NVIDIA driver
