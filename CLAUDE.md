@@ -298,6 +298,28 @@ etc.). Never proactive.
 - If `develop` does not exist on the remote, create it from `main`
   before opening the first feature PR.
 
+### Container builds
+
+`.github/workflows/release.yml` builds and pushes multi-arch images
+(`linux/amd64` + `linux/arm64`) to `ghcr.io/zelosai/zelos.dgx` on every
+push to `develop`, every push to `main`, and every `v*` tag push. The
+version is read from **`galaxy.yml`** (the Ansible collection's version
+field is authoritative — the `pyproject.toml` for the `zdgx` CLI is a
+secondary, container-internal concern). Tags applied:
+
+- **develop push** → `:v<X.Y.Z>-dev` · `:latest` · `:sha-<short>`
+- **main push** → `:v<X.Y.Z>` · `:latest` · `:stable` · `:sha-<short>`
+- **`v<X.Y.Z>` git tag push** → same as main push, plus validates that
+  the tag name matches `galaxy.yml`'s version (build fails if they diverge).
+
+`:latest` follows the most recent build of any kind; `:stable` tracks
+`main` only.
+
+The existing `.github/workflows/release-tag.yml` (auto-tagger that creates
+a `v<X.Y.Z>` git tag from `galaxy.yml`'s version on each `main` merge)
+remains in place — it produces the tag that `release.yml` then responds
+to. The two workflows are complementary.
+
 ## Relation to the Zelos suite
 
 `zelos.dgx` is the first of N planned `zelos.<hosttype>` Ansible collections
