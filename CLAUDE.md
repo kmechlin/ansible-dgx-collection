@@ -298,6 +298,27 @@ etc.). Never proactive.
 - If `develop` does not exist on the remote, create it from `main`
   before opening the first feature PR.
 
+## Relation to the Zelos suite
+
+`zelos.dgx` is the first of N planned `zelos.<hosttype>` Ansible collections
+that bring bare-metal hosts into the [Zelos suite](https://github.com/ZelosAI/zelosai).
+Each collection has two responsibilities: (1) **provision the host** (drivers,
+container runtime, Tailscale, inference runtime, optional k3s, observability,
+safety nets), and (2) **deliver a [`zelosclient`](https://github.com/ZelosAI/zelosclient)
+container onto the host** wired to the local inference runtime and to the
+suite's [`zelosbackplane`](https://github.com/ZelosAI/zelosbackplane) endpoint.
+That container is **not a Kubernetes workload** — it runs as a plain
+docker-compose or systemd unit, regardless of whether `k3s_install: true` is set.
+
+Architecture context:
+- [zelosai/docs/architecture/03-provisioning.md](https://github.com/ZelosAI/zelosai/blob/main/docs/architecture/03-provisioning.md) — the provisioning story.
+- [zelosai/docs/architecture/04-components/zelos.dgx.md](https://github.com/ZelosAI/zelosai/blob/main/docs/architecture/04-components/zelos.dgx.md) — this collection's role in the suite.
+- [zelosai/docs/architecture/00-overview.md](https://github.com/ZelosAI/zelosai/blob/main/docs/architecture/00-overview.md) — suite overview.
+
+The collection currently lives at `kmechlin/ansible-dgx-collection`; migration
+to `ZelosAI/zelos.dgx` is on the roadmap but out of scope for the first-pass
+bootstrap.
+
 ## Good next-iteration prompts
 
 - "Add an `open_webui` role that runs Open WebUI on `:3000` pointed at the
