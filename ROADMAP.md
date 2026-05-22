@@ -16,9 +16,15 @@ _(empty)_
 
 _(empty)_
 
-## Next
+## Next (v0.3)
 
 - [#24 Chore: add Ready for QA status + auto-transition workflow + ROADMAP lane](https://github.com/ZelosAI/zelos.dgx/issues/24) — Chore · P2 · v0.3
+
+## Following (v0.4) — zelosclient delivery + smoke + CI
+
+- Feature: Implement zelosclient delivery role — Feature · P1 · v0.4 (to file; the missing half of the collection's stated purpose)
+- Feature: `zdgx smoke` subcommand — Feature · P2 · v0.4 (to file)
+- [#32 Chore: Apply ci.yml from zelosai template (Python flavor)](https://github.com/ZelosAI/zelos.dgx/issues/32) — Chore · P2 · v0.4
 
 ## Backlog
 
