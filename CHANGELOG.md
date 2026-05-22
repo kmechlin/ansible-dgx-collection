@@ -8,6 +8,20 @@ Released versions are tagged in the source repository as `v<major>.<minor>.<patc
 
 ## [Unreleased]
 
+## [0.2.0] — suite operator context
+
+- **Note (no functional change).** `zelos.dgx` remains an Ansible
+  provisioning collection — explicitly **not** a Kubernetes workload.
+  The Zelos suite's Kubernetes story landed in
+  [zelosai](https://github.com/ZelosAI/zelosai) v0.2.0 as a Go + kubebuilder
+  operator with CRDs (`ZelosPlatform`, `ZelosGateway`, etc.). The
+  `zelosclient` container this collection drops onto provisioned hosts
+  stays a plain docker-compose / systemd unit on the host, wired to the
+  in-cluster `zelosbackplane` URL.
+- **`docs.yml` CI workflow** added to validate Mermaid blocks in docs.
+
+## [Unreleased pre-0.2.0]
+
 ### Added
 - `zdgx` operator CLI (Typer-based) at `cli/zdgx/` with `pyproject.toml` for `pip install -e .`. Subcommands mirror every former Makefile target: `bootstrap`, `setup`, `site`, `snapshot`, `rollback`, `backup`, `backup-restore`, `nvidia`, `base`, `remote-desktop`, `ai`, `k3s`, `monitoring`, `tailscale`, `ping`, `lint`, `syntax`, `deps`. Global options: `-i/--inventory`, `--vault-password-file`, `--limit`, `--check`, `-v`, `-e/--extra-vars`.
 - `make dev-shell` Makefile target: bind-mounts `$PWD` over `/workspace` and over the in-container Ansible collection path so live edits to roles/playbooks/CLI take effect immediately without rebuilding the image.
