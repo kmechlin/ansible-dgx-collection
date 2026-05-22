@@ -12,9 +12,13 @@ Each entry: `[#N title](url) — Work type · Priority · Release`.
 
 _(empty)_
 
+## Ready for QA
+
+_(empty)_
+
 ## Next
 
-- [#20 Chore: add planning ↔ execution loop section to CLAUDE.md + introduce ROADMAP.md](https://github.com/ZelosAI/zelos.dgx/issues/20) — Chore · P2 · v0.3
+- [#24 Chore: add Ready for QA status + auto-transition workflow + ROADMAP lane](https://github.com/ZelosAI/zelos.dgx/issues/24) — Chore · P2 · v0.3
 
 ## Backlog
 
@@ -22,6 +26,7 @@ _(empty)_
 
 ## Recently shipped
 
+- [#20 Chore: add planning ↔ execution loop section to CLAUDE.md + introduce ROADMAP.md](https://github.com/ZelosAI/zelos.dgx/issues/20) — Chore · P2 · v0.3 (closed 2026-05-22)
 - [#17 docs: add Issue tracking & releases section to CLAUDE.md](https://github.com/ZelosAI/zelos.dgx/issues/17) — Chore · P3 · Backlog (closed 2026-05-22)
 
 ## See also
