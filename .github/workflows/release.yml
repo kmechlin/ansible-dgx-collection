@@ -33,8 +33,11 @@ jobs:
           elif [ -f pyproject.toml ]; then
             VERSION=$(grep -E '^version[[:space:]]*=' pyproject.toml | head -1 | sed -E 's/version[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/')
             SOURCE="pyproject.toml"
+          elif [ -f VERSION ]; then
+            VERSION=$(head -1 VERSION | tr -d '[:space:]')
+            SOURCE="VERSION"
           else
-            echo "::error::No version source (looked for galaxy.yml then pyproject.toml)"
+            echo "::error::No version source (looked for galaxy.yml, pyproject.toml, VERSION)"
             exit 1
           fi
           if [ -z "$VERSION" ]; then
@@ -92,30 +95,54 @@ jobs:
       - name: Check if SHA image already satisfies platforms
         id: existing
         env:
-          SRC: ${{ steps.tags.outputs.image }}:sha-${{ steps.tags.outputs.sha-short }}
+          IMAGE: ${{ steps.tags.outputs.image }}
+          SHA_SHORT: ${{ steps.tags.outputs.sha-short }}
           REQUIRED: ${{ steps.tags.outputs.platforms }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_FULL: ${{ github.repository }}
+          COMMIT_SHA: ${{ github.sha }}
         run: |
-          if ! docker manifest inspect "$SRC" >/dev/null 2>&1; then
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "No existing SHA image at $SRC"
-            exit 0
+          # Candidate source images, in priority order:
+          # 1. the current commit's sha-<short> (a re-push of an already-built ref)
+          # 2. on main/tag: the develop tip that fed the merge (parent2 of HEAD)
+          CANDIDATES=("${IMAGE}:sha-${SHA_SHORT}")
+          if [[ "$GITHUB_REF" == refs/heads/main || "$GITHUB_REF" == refs/tags/v* ]]; then
+            parents=$(gh api "/repos/${REPO_FULL}/commits/${COMMIT_SHA}" -q '.parents[].sha' 2>/dev/null || true)
+            p2=$(echo "$parents" | sed -n '2p')
+            if [ -n "$p2" ]; then
+              CANDIDATES+=("${IMAGE}:sha-${p2:0:7}")
+            fi
           fi
-          HAVE=$(docker manifest inspect "$SRC" \
-            | jq -r '(.manifests // [] | map("\(.platform.os)/\(.platform.architecture)"))[]' 2>/dev/null \
-            | sort -u | paste -sd,)
-          if [ -z "$HAVE" ]; then
-            HAVE="linux/amd64"
-          fi
-          echo "Existing platforms: $HAVE; required: $REQUIRED"
-          missing=false
-          IFS=',' read -ra REQ <<< "$REQUIRED"
-          for p in "${REQ[@]}"; do
-            echo "$HAVE" | tr ',' '\n' | grep -qx "$p" || missing=true
+
+          found_src=""
+          for SRC in "${CANDIDATES[@]}"; do
+            if ! docker manifest inspect "$SRC" >/dev/null 2>&1; then
+              echo "No image at $SRC"
+              continue
+            fi
+            HAVE=$(docker manifest inspect "$SRC" \
+              | jq -r '(.manifests // [] | map("\(.platform.os)/\(.platform.architecture)"))[]' 2>/dev/null \
+              | sort -u | paste -sd,)
+            [ -z "$HAVE" ] && HAVE="linux/amd64"
+            echo "Candidate $SRC has platforms: $HAVE"
+            missing=false
+            IFS=',' read -ra REQ <<< "$REQUIRED"
+            for p in "${REQ[@]}"; do
+              echo "$HAVE" | tr ',' '\n' | grep -qx "$p" || missing=true
+            done
+            if [ "$missing" = "false" ]; then
+              found_src="$SRC"
+              break
+            fi
           done
-          if [ "$missing" = "false" ]; then
+
+          if [ -n "$found_src" ]; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "src=$found_src" >> "$GITHUB_OUTPUT"
+            echo "Will retag from $found_src"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Will build fresh"
           fi
 
       - name: Set up QEMU (for arm64 cross-build)
@@ -142,10 +169,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Retag existing SHA image (skip rebuild)
+      - name: Retag existing image (skip rebuild)
         if: steps.existing.outputs.exists == 'true'
         env:
-          SRC: ${{ steps.tags.outputs.image }}:sha-${{ steps.tags.outputs.sha-short }}
+          SRC: ${{ steps.existing.outputs.src }}
           TAGS: ${{ steps.tags.outputs.tags }}
         run: |
           set -e
@@ -159,5 +186,5 @@ jobs:
             echo "Retagging $SRC -> ${ARGS[*]}"
             docker buildx imagetools create "${ARGS[@]}" "$SRC"
           else
-            echo "Nothing to retag (only sha tag)."
+            echo "Nothing to retag (only sha tag was requested)."
           fi
